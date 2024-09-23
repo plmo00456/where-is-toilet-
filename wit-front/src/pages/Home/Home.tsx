@@ -3,19 +3,47 @@ import { Map, MapMarker } from "react-kakao-maps-sdk";
 import { MdOutlineMyLocation } from "react-icons/md";
 import { GrRefresh } from "react-icons/gr";
 import { TbMenu2 } from "react-icons/tb";
-import Loading  from "../../component/Utils/Loading"
+import Loading from "../../component/Utils/Loading";
+import markerToiletImg from "../../assets/img/marker_toilet.png";
+import markerMyImg from "../../assets/img/marker_my.png";
+import ToiletMaker from "../../component/Map/ToiletMaker";
 
 export default function Home() {
-  interface LatLng{
-    lat?: number | null,
-    lng?: number | null,
-    msg?: string | null,
+
+  // 테스트용 삭제해야함
+  const testMarkers = [
+    {
+      title: "쌍암공원 화장실 1",
+      latlng: { lat: 35.222240962971966, lng: 126.844185070463 },
+    },
+    {
+      title: "쌍암공원 화장실 2",
+      latlng: { lat: 35.224108054535336, lng: 126.84519755313516 },
+    },
+    {
+      title: "다담 마트 화장실",
+      latlng: { lat: 35.2193934367396, lng: 126.8483148944007 },
+    },
+    {
+      title: "첨단종합병원 화장실",
+      latlng: { lat: 35.221079665476935, lng: 126.8453103972226 },
+    },
+  ]
+
+
+
+  interface LatLng {
+    lat?: number | null;
+    lng?: number | null;
+    msg?: string | null;
   }
-  
+
+  const [clickedMarkerIndex, setClickedMarkerIndex] = useState(null as number | null);
+
   const [currentLocation, setCurrentLocation] = useState({
     lat: null as number | null,
     lng: null as number | null,
-  })
+  });
   const [loading, setLoading] = useState(false);
   const [isMoveMap, setIsMoveMap] = useState(false);
   const [state, setState] = useState({
@@ -28,9 +56,9 @@ export default function Home() {
     isPanto: true as boolean,
   });
 
-  function setCenter(position:LatLng){
+  function setCenter(position: LatLng) {
     const { lat, lng } = position;
-    if( lat && lng ){
+    if (lat && lng) {
       console.log(lat + ".  " + lng);
       setState((prev) => ({
         ...prev,
@@ -45,12 +73,12 @@ export default function Home() {
 
   function getCurrentPosition(): Promise<LatLng> {
     return new Promise((resolve) => {
-      if(currentLocation.lat === null || currentLocation.lng === null){
+      if (currentLocation.lat === null || currentLocation.lng === null) {
         if (navigator.geolocation) {
           // GeoLocation을 이용해서 접속 위치를 얻어옵니다
           navigator.geolocation.getCurrentPosition(
             (position) => {
-              const {latitude, longitude } = position.coords;
+              const { latitude, longitude } = position.coords;
               setCurrentLocation({
                 lat: latitude,
                 lng: longitude,
@@ -58,7 +86,7 @@ export default function Home() {
               resolve({
                 lat: latitude,
                 lng: longitude,
-                msg: 'success',
+                msg: "success",
               });
             },
             (err) => {
@@ -68,7 +96,7 @@ export default function Home() {
                 isLoading: false,
               }));
               resolve({
-                msg: 'error',
+                msg: "error",
               });
             }
           );
@@ -80,15 +108,14 @@ export default function Home() {
             isLoading: false,
           }));
           resolve({
-            msg: 'error',
+            msg: "error",
           });
         }
       }
     });
-    
   }
 
-  function getData(){
+  function getData() {
     setLoading(true);
     setTimeout(() => {
       setLoading(false);
@@ -97,21 +124,28 @@ export default function Home() {
 
   useEffect(() => {
     getCurrentPosition().then((position: LatLng) => {
-      if(position.lat && position.lng){
-        setCenter(position)
+      if (position.lat && position.lng) {
+        setCenter(position);
       }
-    })
+    });
   }, []);
 
   return (
     <div className="flex justify-center items-center h-full">
-      { loading && <Loading/> }
+      {loading && <Loading />}
       <div className="flex w-full h-full">
         <Map
           center={state.center}
           isPanto={state.isPanto}
           style={{ width: "100%", height: "100%" }}
           level={3}
+          onClick={(_, mouseEvent) => {
+            setClickedMarkerIndex(null);
+            const latlng = mouseEvent.latLng
+            console.log(
+              `클릭한 위치의 위도는 ${latlng.getLat()} 이고, 경도는 ${latlng.getLng()} 입니다`,
+            )
+          }}
           onDragEnd={(map) => {
             setIsMoveMap(true);
             const latlng = map.getCenter();
@@ -120,24 +154,56 @@ export default function Home() {
               center: {
                 lat: latlng.getLat(),
                 lng: latlng.getLng(),
-              }
-            }))
+              },
+            }));
           }}
         >
           {!state.isLoading && currentLocation.lat && currentLocation.lng && (
-            <MapMarker position={{ lat:currentLocation.lat, lng: currentLocation.lng }}>
-              <div style={{ padding: "5px", color: "#000" }}>
-                {state.errMsg ? state.errMsg : "여기에 계신가요?!"}
-              </div>
-            </MapMarker>
+            <MapMarker
+              position={{ lat: currentLocation.lat, lng: currentLocation.lng }}
+              image={{
+                src: markerMyImg,
+                size: {
+                  width: 32,
+                  height: 32,
+                }
+              }}
+            />
           )}
+          {testMarkers.map((marker, index) => (
+            <ToiletMaker
+              key={`${marker.title}-${marker.latlng}`}
+              position={marker.latlng}
+              index={index}
+              title={marker.title}
+              isClicked={clickedMarkerIndex === index}
+              onClick={(d) => {
+                setClickedMarkerIndex(clickedMarkerIndex === index ? null : index);
+              }}
+            />
+          ))}
+
+{/* <MapMarker
+              key={`${marker.title}-${marker.latlng}`}
+              position={marker.latlng} // 마커를 표시할 위치
+              image={{
+                src: markerToiletImg,
+                size: {
+                  width: 48,
+                  height: 52,
+                },
+              }}
+              title={marker.title} // 마커의 타이틀, 마커에 마우스를 올리면 타이틀이 표시됩니다
+            /> */}
+            
+          
         </Map>
       </div>
 
       <div className="absolute flex-col items-center justify-center top-5 w-[90vw] md:w-[50vw] z-10">
         <div className="flex justify-center items-center">
           <button className="bg-white flex justify-center items-center w-[4rem] h-[3.4rem] text-3xl mr-3 rounded-lg px-3 border border-gray-300 text-gray-500">
-            <TbMenu2/>
+            <TbMenu2 />
           </button>
           <form className="w-[100%]">
             <label
@@ -180,47 +246,43 @@ export default function Home() {
             </div>
           </form>
         </div>
-
       </div>
 
       {/* 맵 이동 시 화장실 재 검색 버튼 */}
-        { isMoveMap &&
-          <button
-            className="absolute bottom-[5rem] z-10 flex justify-center items-center px-5 py-1 mx-auto mt-5 mb-5 text-blue-500 bg-white rounded-lg shadow-lg transition duration-300 ease-in-out delay-150 text-md justify-cent active:bg-gray-200"
-            onClick={() => {
-              getData();
-              setIsMoveMap(false);
-            }}
-          >
-            <GrRefresh className="mr-2" />현 지도에서 검색
-          </button>
-        }
-      
-      
+      {isMoveMap && (
+        <button
+          className="absolute bottom-[5rem] z-10 flex justify-center items-center px-5 py-1 mx-auto mt-5 mb-5 text-blue-500 bg-white rounded-lg shadow-lg transition duration-300 ease-in-out delay-150 text-md justify-cent active:bg-gray-200"
+          onClick={() => {
+            getData();
+            setIsMoveMap(false);
+          }}
+        >
+          <GrRefresh className="mr-2" />현 지도에서 검색
+        </button>
+      )}
+
       {/* 현 위치로 이동 */}
       <div
         className="group flex absolute bottom-[6rem] left-0 z-10 justify-center items-center rounded-full w-[5rem] h-[5rem]"
         onClick={() => {
-          if(currentLocation.lat && currentLocation.lng){
-            setCenter({lat: currentLocation.lat, lng: currentLocation.lng});
+          if (currentLocation.lat && currentLocation.lng) {
+            setCenter({ lat: currentLocation.lat, lng: currentLocation.lng });
             console.log(currentLocation);
-          }else{
+          } else {
             getCurrentPosition().then(() => {
-              if(currentLocation.lat && currentLocation.lng)
-                setCenter({lat: currentLocation.lat, lng: currentLocation.lng});
+              if (currentLocation.lat && currentLocation.lng)
+                setCenter({
+                  lat: currentLocation.lat,
+                  lng: currentLocation.lng,
+                });
             });
           }
         }}
       >
-        <button
-          className="flex justify-center items-center w-[3rem] h-[3rem] bg-white border rounded-full shadow-lg group-active:bg-gray-200"
-        >
+        <button className="flex justify-center items-center w-[3rem] h-[3rem] bg-white border rounded-full shadow-lg group-active:bg-gray-200">
           <MdOutlineMyLocation className="text-3xl" />
         </button>
       </div>
-
-
-      
     </div>
   );
 }
