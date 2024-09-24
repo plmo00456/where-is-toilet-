@@ -19,7 +19,7 @@ function App() {
         <Route path="/add" element={<Add />} />
         <Route path="/my" element={<My />} />
       </Routes>
-      <div className="flex absolute bottom-0 z-10 flex-col justify-center items-center w-full">
+      <div className="flex absolute bottom-0 z-[999] flex-col justify-center items-center w-full">
         <BottomMenu/>
       </div>
     </div>

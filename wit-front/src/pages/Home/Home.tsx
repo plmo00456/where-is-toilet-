@@ -4,9 +4,9 @@ import { MdOutlineMyLocation } from "react-icons/md";
 import { GrRefresh } from "react-icons/gr";
 import { TbMenu2 } from "react-icons/tb";
 import Loading from "../../component/Utils/Loading";
-import markerToiletImg from "../../assets/img/marker_toilet.png";
-import markerMyImg from "../../assets/img/marker_my.png";
 import ToiletMaker from "../../component/Map/ToiletMaker";
+import DraggableBottomLayer from "../../component/BottomLayer";
+import markerMyImg from "../../assets/img/marker_my.png";
 
 export default function Home() {
 
@@ -30,6 +30,10 @@ export default function Home() {
     },
   ]
 
+
+
+
+  
 
 
   interface LatLng {
@@ -170,6 +174,9 @@ export default function Home() {
               }}
             />
           )}
+
+
+          {/* 나중에 삭제해야함 */}
           {testMarkers.map((marker, index) => (
             <ToiletMaker
               key={`${marker.title}-${marker.latlng}`}
@@ -182,20 +189,6 @@ export default function Home() {
               }}
             />
           ))}
-
-{/* <MapMarker
-              key={`${marker.title}-${marker.latlng}`}
-              position={marker.latlng} // 마커를 표시할 위치
-              image={{
-                src: markerToiletImg,
-                size: {
-                  width: 48,
-                  height: 52,
-                },
-              }}
-              title={marker.title} // 마커의 타이틀, 마커에 마우스를 올리면 타이틀이 표시됩니다
-            /> */}
-            
           
         </Map>
       </div>
@@ -247,6 +240,15 @@ export default function Home() {
           </form>
         </div>
       </div>
+
+      {/* 하단 2 레이어 */}
+      <DraggableBottomLayer/>
+      {/* <div className="flex flex-col absolute bottom-0 z-30 justify-center items-center w-full h-[88%] bg-white shadow-[rgba(0,0,15,0.5)_0px_-5px_30px_-10px]">
+        <div className="flex absolute top-0 justify-center items-center w-full h-5 select-none group">
+          <div className="bg-gray-300 group-active:bg-gray-400 rounded-lg h-1 w-[3rem]"></div>
+        </div>
+        <div>b</div>
+      </div> */}
 
       {/* 맵 이동 시 화장실 재 검색 버튼 */}
       {isMoveMap && (
