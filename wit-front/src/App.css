@@ -1,0 +1,4 @@
+html {
+  overscroll-behavior: none; /* 모든 방향의 오버스크롤 동작을 비활성화 */
+  overflow: hidden;
+}

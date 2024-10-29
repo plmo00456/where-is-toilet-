@@ -1,69 +1,126 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
-const DraggableBottomLayer: React.FC = () => {
+interface DraggableBottomLayerProps {
+  elements: React.ReactNode[];
+}
+
+const DraggableBottomLayer: React.FC<DraggableBottomLayerProps> = ({ elements }) => {
   const [dragging, setDragging] = useState<boolean>(false);
-  const [startY, setStartY] = useState<number>(0); // 드래그 시작 Y 좌표
-  const [position, setPosition] = useState<number>(0); // 최상위 요소의 Y 위치
+  const [startY, setStartY] = useState<number>(0);
+  const [position, setPosition] = useState<number>(0);
+  const MAX_POSITION = window.innerHeight * 0.75; // 최대값
+  const MIN_POSITION = window.innerHeight * 0.005; // 최소값
+  const MID_POSITION = window.innerHeight * 0.45; // 중간값
 
-  // 드래그 시작 함수
+  useEffect(() => {
+    const initialPosition = MAX_POSITION; // 기본값 설정
+    setPosition(initialPosition);
+  }, []);
+
   const startDrag = (clientY: number) => {
     setDragging(true);
-    setStartY(clientY - position); // 드래그 시작 위치 설정
+    setStartY(clientY - position);
   };
 
-  // 드래그 이동 함수
   const moveDrag = (clientY: number) => {
     if (dragging) {
-      const newY = clientY - startY; // 새로운 Y 좌표 계산
-      setPosition(newY); // 위치 업데이트
+      const newY = clientY - startY;
+      // 최대값과 최소값으로 제한
+      setPosition(Math.min(Math.max(newY, elements.length == 1 ? MID_POSITION : MIN_POSITION), MAX_POSITION));
     }
   };
 
+  const stopDrag = () => {
+    if (position < MAX_POSITION && position >= MID_POSITION) {
+      setPosition(MID_POSITION); // 중간값으로 이동
+    } else if (position < MID_POSITION && position >= MIN_POSITION) {
+      setPosition(MIN_POSITION); // 최소값으로 이동
+    } else if (position < MIN_POSITION) {
+      setPosition(MIN_POSITION); // 최소값으로 고정
+    }
+    setDragging(false);
+  };
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      moveDrag(e.clientY);
+    };
+
+    const handleMouseUp = () => {
+      stopDrag();
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+
+    if (dragging) {
+      window.addEventListener('mousemove', handleMouseMove);
+      window.addEventListener('mouseup', handleMouseUp);
+    }
+
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [dragging, position]);
+
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
-    startDrag(e.clientY); // 마우스를 눌렀을 때 드래그 시작
+    startDrag(e.clientY);
   };
 
   const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
-    startDrag(e.touches[0].clientY); // 터치를 시작했을 때 드래그 시작
-  };
-
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
-    moveDrag(e.clientY); // 마우스 이동 시 드래그 처리
+    startDrag(e.touches[0].clientY);
   };
 
   const handleTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
-    moveDrag(e.touches[0].clientY); // 터치 이동 시 드래그 처리
-  };
-
-  const stopDrag = () => {
-    setDragging(false); // 드래그 종료
-  };
-
-  const handleMouseUp = () => {
-    stopDrag(); // 마우스 버튼을 놓았을 때 드래그 종료
+    moveDrag(e.touches[0].clientY);
   };
 
   const handleTouchEnd = () => {
-    stopDrag(); // 터치가 끝났을 때 드래그 종료
+    stopDrag();
+  };
+
+  const renderContent = () => {
+    if (elements.length === 1) {
+      return (
+        <div className='flex w-full h-full'>
+          {elements[0]}
+        </div>
+      );
+    } else if (elements.length === 2) {
+      return (
+        <>
+          <div className='flex w-full h-[37%]'>
+            {elements[0]}
+          </div>
+          <div className='flex w-full h-[63%]'>
+            {elements[1]}
+          </div>
+        </>
+      );
+    } else {
+      return (
+        <div className='flex w-full h-full'>
+        </div>
+      );
+    }
   };
 
   return (
     <div
-      className="flex flex-col absolute bottom-0 hover:-translate-y-6 z-30 justify-center items-center w-full h-[87%] bg-white shadow-[rgba(0,0,15,0.5)_0px_-5px_30px_-10px] "
-      style={{ transform: `translateY(${position}px)` }} // Y 위치에 따라 최상위 요소 이동
-      onMouseMove={handleMouseMove}
-      onTouchMove={handleTouchMove}
-      onMouseUp={handleMouseUp}
-      onTouchEnd={handleTouchEnd}
-      onMouseLeave={handleMouseUp} // 마우스가 영역 밖으로 나가도 드래그 중지
+      className={`flex flex-col absolute bottom-0 hover:-translate-y-6 z-30 w-full h-[87%] bg-white shadow-[rgba(0,0,15,0.5)_0px_-5px_30px_-10px] ${elements.length == 0 ? 'hidden': ''}`}
+      style={{ transform: `translateY(${position}px)` }}
     >
-      <div className="flex absolute top-0 justify-center items-center w-full h-5 group"
-        onMouseDown={handleMouseDown} // 부모 요소 클릭 시 드래그 시작
-        onTouchStart={handleTouchStart} // 터치 시 드래그 시작
+      <div className="flex absolute top-0 justify-center items-center w-full h-8 group active:cursor-grabbing hover:cursor-grab touch-none"
+        onMouseDown={handleMouseDown}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
       >
         <div className="bg-gray-300 group-active:bg-gray-400 rounded-lg h-1 w-[3rem]"></div>
       </div>
-      <div>b</div>
+      <div className='flex flex-col mt-10 h-full'>
+        {renderContent()}
+      </div>
     </div>
   );
 };

@@ -215,7 +215,7 @@ export default function Home() {
                   viewBox="0 0 20 20"
                 >
                   <path
-                    stroke="currentColor"
+                    stroke="currentColor" 
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth="2"
@@ -226,7 +226,7 @@ export default function Home() {
               <input
                 type="search"
                 id="default-search"
-                className="block p-4 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 ps-10 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                className="block p-4 w-full text-gray-900 bg-gray-50 rounded-lg border border-gray-300 text-md ps-10 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                 placeholder="장소, 주소 검색"
                 required
               />
@@ -242,13 +242,12 @@ export default function Home() {
       </div>
 
       {/* 하단 2 레이어 */}
-      <DraggableBottomLayer/>
-      {/* <div className="flex flex-col absolute bottom-0 z-30 justify-center items-center w-full h-[88%] bg-white shadow-[rgba(0,0,15,0.5)_0px_-5px_30px_-10px]">
-        <div className="flex absolute top-0 justify-center items-center w-full h-5 select-none group">
-          <div className="bg-gray-300 group-active:bg-gray-400 rounded-lg h-1 w-[3rem]"></div>
-        </div>
-        <div>b</div>
-      </div> */}
+      <DraggableBottomLayer
+        elements={[
+          <div>1번</div>,
+          <div>2번</div>
+        ]}
+      />
 
       {/* 맵 이동 시 화장실 재 검색 버튼 */}
       {isMoveMap && (
